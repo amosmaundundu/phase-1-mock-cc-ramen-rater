@@ -1,70 +1,100 @@
 
 
-const baseUrl = 'http://localhost:3333/ramen'
+// 
+fetch('http://localhost:3333/ramens')
+.then(resp => resp.json())
+.then(data => {
+    ramenCollector(data);
+    ramenImgInit(ramenContainer);
+    ramenDetails();
+})
 
-const ramenMenu = document.querySelector('#ramen-menu')
+// console.log(data);
 
-fetch(`${baseUrl}/ramens`)
-    .then(res => res.json())
-    .then(ramenObjects => {
-        console.log(ramenObjects)
-        ramenObjects.forEach(ramen => renderRamen(ramen))
+const ramenMenu = document.querySelector('div#ramen-menu');
+const ramenForm = document.querySelector('form#new-ramen');
+const ramenDeets = document.querySelector('div#ramen-detail');
+
+const ramenImg = document.querySelector('img.detail-image');
+const ramenName = document.querySelector('h2.name');
+const ramenRest = document.querySelector('h3.restaurant');
+const ramenRating = document.querySelector('span#rating-display');
+const ramenComment = document.querySelector('p#comment-display');
+
+const ramenContainer = []
+const ramenSubmit = []
+
+let submitCounter = 10;
+
+function ramenCollector(param) {
+    param.forEach( (ramenObj, i) => {
+        ramenContainer.push(param[i]);
+    })
+    console.log(ramenContainer);
+}
+
+function ramenImgInit(source) {
+    source.forEach((keyValue) => {
+        ramenBuilder(keyValue)
     }
-)
+)}
 
-function renderRamen(ramen) {
-    // divs
-    const newImage = document.createElement('img')
-
-    // append the images to the menu
-    ramenMenu.appendChild(newImage)
-
-     // create new image tag
-    newImage.src = ramen.image
-
-    // add click event listener to img
-    newImage.addEventListener('click', () => ramenClick(ramen))
+function ramenBuilder(source) {
+    const img = document.createElement('img')
+    img.src = source.image;
+    img.alt = source.name;
+    if (source.id <= 5) {
+        img.className = 'menu-img';
+        img.id = source.id-1;
+    } else {
+        img.id = source.id;
+        console.log(`${source}`)
+    }
+    ramenMenu.append(img);
 }
 
-function ramenClick(ramen) {
-    // the div where the image will go to
-    const container = document.querySelector('#ramen-detail')
-
-    // where the image will be populated
-    const imgPlaceholder = container.querySelector('.detail-image').src = ramen.image
-
-    // target the h2 for the name
-    const h2 = container.querySelector('.name').innerText = ramen.name
-
-    // target the h3 for restaurant name
-    const h3 = container.querySelector('.restaurant').innerText = ramen.restaurant
-
-    // rating
-    const rating = document.querySelector('#rating-display').innerText = ramen.rating
-
-    // comment
-    const comment = document.querySelector('#comment-display').innerText = ramen.comment
+function ramenDetails(id = 0) {
+    let container = ''
+    if (id >= 10) {
+        container = ramenSubmit;
+        id -= 10;
+    } else {
+        container = ramenContainer;
+    }
+    // ramenDeets.children[2].innerText - ramenContainer[id].restaurant; /* Won't work for some reason. Preserved for observation. */
+    ramenImg.src = container[id].image;
+    ramenName.innerText = container[id].name;
+    ramenRest.innerText = container[id].restaurant;
+    ramenRating.innerText = container[id].rating;
+    ramenComment.innerText = container[id].comment;
 }
 
-// form interactivity
-const newRamenForm = document.querySelector('#new-ramen')
-newRamenForm.addEventListener('submit', handleSubmit)
+function newRamen() {
+    const newRName = document.querySelector('input#new-name').value;
+    const newRRest = document.querySelector('input#new-restaurant').value;
+    const newRImg = document.querySelector('input#new-image').value;
+    const newRRating = document.querySelector('input#new-rating').value
+    const newRComment = document.querySelector('textarea#new-comment').value;
 
-function handleSubmit(e) {
-    e.preventDefault()
+    const newRamen = {};
+        newRamen.comment = newRComment;
+        newRamen.id = submitCounter;
+        newRamen.image = newRImg;
+        newRamen.name = newRName;
+        newRamen.rating = newRRating;
+        newRamen.restaurant = newRRest;
 
-    // make a new ramen obj
-    const newRamen = {}
-
-    // grab all the other details: name, restaurant, image, rating and comment
-    newRamenForm.name = e.target.name.value
-    newRamenForm.restaurant = e.target.restaurant.value
-    newRamenForm.image = e.target.image.value
-    newRamenForm.comment = e.target['new-comment'].value
-
-    // plug the data into the new ramen obj
-    renderRamen(newRamenForm)
-
-    // clear the form
-    newRamenForm.reset()
+    return ramenSubmit.push(newRamen);
 }
+
+ramenMenu.addEventListener('click', e => {
+    ramenDetails(e.target.id);
+})
+
+document.addEventListener('submit', e => {
+    e.preventDefault();
+    newRamen();
+    ramenBuilder(ramenSubmit[ramenSubmit.length-1])
+    ramenForm.reset();
+    submitCounter++
+})
